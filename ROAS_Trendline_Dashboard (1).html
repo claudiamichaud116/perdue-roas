@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Retail Media Dashboard — Perdue</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#003C71;--yellow:#FFCC33;--bright-blue:#00A3E0;
+  --teal:#00ACA0;--green:#8FAD15;--orange:#E87722;
+  --bg:#001829;--card:#002040;--border:#003366;
+  --text:#E8F4FC;--muted:#5A8AAA;
+  --roas-green:#00C853;--roas-red:#FF1744;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);padding:0 0 60px;}
+ 
+/* TOP STRIPE */
+.top-stripe{height:5px;background:linear-gradient(90deg,var(--yellow) 0%,var(--bright-blue) 50%,var(--blue) 100%);}
+ 
+/* HEADER */
+.page{max-width:1440px;margin:0 auto;padding:32px 28px 0;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.logo-block{display:flex;align-items:center;gap:16px;}
+.perdue-badge{
+  width:60px;height:60px;border-radius:14px;
+  background:linear-gradient(135deg,var(--yellow) 0%,#e6b000 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px rgba(255,204,51,0.35);
+  font-size:1.6rem;font-weight:800;color:var(--blue);font-family:'Syne',sans-serif;
+}
+.header-text h1{font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;}
+.header-text p{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-top:6px;}
+.header-stats{display:flex;gap:36px;align-items:flex-end;}
+.hstat{text-align:right;}
+.hstat-val{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--yellow);line-height:1;}
+.hstat-lbl{font-size:0.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;}
+ 
+/* OVERVIEW CARD */
+.overview-wrap{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:28px 32px;margin-bottom:36px;position:relative;overflow:hidden;
+}
+.overview-wrap::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--yellow),var(--bright-blue) 60%,transparent);
+}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--yellow);text-transform:uppercase;}
+.section-sub{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
+.chart-legend{display:flex;gap:20px;align-items:center;}
+.legend-item{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.overview-chart-wrap{height:260px;}
+ 
+/* RETAILER GRID */
+.grid-section{padding:0 28px;}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.grid-label{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
+.generated-at{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
+.retailer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:18px;}
+ 
+/* CARDS */
+.retailer-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:20px 24px 16px;
+  position:relative;overflow:hidden;transition:transform 0.2s, box-shadow 0.2s;
+}
+.retailer-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.card-top-bar{position:absolute;top:0;left:0;right:0;height:3px;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.retailer-name{font-size:1rem;font-weight:700;color:#FFFFFF;}
+.roas-badge{
+  font-family:'DM Mono',monospace;font-size:0.75rem;
+  padding:4px 12px;border-radius:20px;border:1px solid;font-weight:500;
+}
+.roas-badge.over{background:rgba(0,200,83,0.1);color:var(--roas-green);border-color:rgba(0,200,83,0.4);}
+.roas-badge.under{background:rgba(255,23,68,0.1);color:var(--roas-red);border-color:rgba(255,23,68,0.4);}
+.roas-badge.nodata{background:rgba(255,204,51,0.1);color:var(--yellow);border-color:rgba(255,204,51,0.3);}
+.card-chart-area{height:130px;}
+.card-footer{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.mini-stat{display:flex;flex-direction:column;gap:2px;}
+.mini-val{font-family:'DM Mono',monospace;font-size:0.78rem;color:#FFFFFF;}
+.mini-lbl{font-size:0.54rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;}
+.goal-tag{
+  font-family:'DM Mono',monospace;font-size:0.54rem;margin-top:8px;
+  padding:2px 8px;border-radius:10px;display:inline-block;
+}
+.goal-tag.over{background:rgba(0,200,83,0.1);color:var(--roas-green);}
+.goal-tag.under{background:rgba(255,23,68,0.1);color:var(--roas-red);}
+.no-data{height:130px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<div class="page">
+ 
+<header>
+  <div class="logo-block">
+    <div class="perdue-badge">P</div>
+    <div class="header-text">
+      <h1>Retail Media Dashboard</h1>
+      <p>Perdue Farms &nbsp;&middot;&nbsp; FY27 Shopper Performance &nbsp;&middot;&nbsp; All Retailers</p>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-val">$20.0M</div>
+      <div class="hstat-lbl">Total Spend</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val">$339.4M</div>
+      <div class="hstat-lbl">Total Revenue</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val">20.09x</div>
+      <div class="hstat-lbl">Portfolio ROAS</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val">32.82x</div>
+      <div class="hstat-lbl">Latest ROAS</div>
+    </div>
+  </div>
+</header>
+ 
+<!-- OVERVIEW: Spend vs Revenue -->
+<div class="overview-wrap">
+  <div class="section-header">
+    <span class="section-title">&#9658; Portfolio Overview &mdash; Spend vs. Revenue</span>
+    <div style="display:flex;align-items:center;gap:24px;">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#FFCC33"></div>Spend</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00A3E0"></div>Revenue</div>
+      </div>
+      <span class="section-sub">Jan-25 – Apr-25</span>
+    </div>
+  </div>
+  <div class="overview-chart-wrap"><canvas id="overviewChart"></canvas></div>
+</div>
+ 
+</div><!-- end .page -->
+ 
+<!-- RETAILER GRID -->
+<div class="grid-section" style="max-width:1440px;margin:0 auto;padding:0 28px;">
+  <div class="top-bar">
+    <div class="grid-label">&#9658; By Retailer &nbsp;&middot;&nbsp;
+      <span style="color:#00C853">&#9679; Above Goal</span> &nbsp;
+      <span style="color:#FF1744">&#9679; Below Goal</span>
+    </div>
+    <div class="generated-at">Updated: May 20, 2026 at 02:42 PM</div>
+  </div>
+  <div class="retailer-grid" id="retailerGrid"></div>
+</div>
+ 
+<script>
+const TOP = [{"d": "Jan-25", "spend": 609206.14, "rev": 8551234.82, "roas": 14.04}, {"d": "Feb-25", "spend": 610565.45, "rev": 9163173.06, "roas": 15.01}, {"d": "Mar-25", "spend": 2375939.77, "rev": 23556350.83, "roas": 9.91}, {"d": "Apr-25", "spend": 59826.48, "rev": 1909524.15, "roas": 31.92}, {"d": "May-25", "spend": 73948.04, "rev": 2641627.06, "roas": 35.72}, {"d": "Jun-25", "spend": 402022.08, "rev": 10433092.32, "roas": 25.95}, {"d": "Jul-25", "spend": 893302.67, "rev": 16991875.07, "roas": 19.02}, {"d": "Aug-25", "spend": 1222772.17, "rev": 20709009.02, "roas": 16.94}, {"d": "Sep-25", "spend": 1701471.71, "rev": 24490648.38, "roas": 14.39}, {"d": "Oct-25", "spend": 1852149.92, "rev": 27531979.8, "roas": 14.86}, {"d": "Nov-25", "spend": 1705070.96, "rev": 26177430.61, "roas": 15.35}, {"d": "Dec-25", "spend": 1349257.5, "rev": 19487558.37, "roas": 14.44}, {"d": "Jan-26", "spend": 1150196.06, "rev": 25010288.27, "roas": 21.74}, {"d": "Feb-26", "spend": 1604101.16, "rev": 32120722.79, "roas": 20.02}, {"d": "Mar-26", "spend": 970746.43, "rev": 21424304.16, "roas": 22.07}, {"d": "Apr-26", "spend": 1330781.38, "rev": 36772900.91, "roas": 27.63}, {"d": "Jan-25", "spend": 371716.61, "rev": 6772775.59, "roas": 18.22}, {"d": "Feb-25", "spend": 400332.79, "rev": 7423806.43, "roas": 18.54}, {"d": "Mar-25", "spend": 1252199.27, "rev": 16551848.96, "roas": 13.22}, {"d": "Apr-25", "spend": 50621.92, "rev": 1661435.3, "roas": 32.82}];
+const RETAILERS = {"Walmart": {"goal": 18, "data": [{"d": "Jan-25", "r": 18.22, "spend": 371716.61, "rev": 6772775.59}, {"d": "Feb-25", "r": 18.54, "spend": 400332.79, "rev": 7423806.43}, {"d": "Mar-25", "r": 13.22, "spend": 1252199.27, "rev": 16551848.96}, {"d": "Apr-25", "r": 32.82, "spend": 50621.92, "rev": 1661435.3}, {"d": "May-25", "r": 37.44, "spend": 69004.07, "rev": 2583467.06}, {"d": "Jun-25", "r": 30.08, "spend": 320608.13, "rev": 9642853.69}, {"d": "Jul-25", "r": 21.24, "spend": 722937.21, "rev": 15355797.06}, {"d": "Sep-25", "r": 16.46, "spend": 1163605.03, "rev": 19156570.18}, {"d": "Oct-25", "r": 18.27, "spend": 1161413.44, "rev": 21223888.05}, {"d": "Nov-25", "r": 19.02, "spend": 1047877.32, "rev": 19927948.14}, {"d": "Dec-25", "r": 24.29, "spend": 529548.81, "rev": 12864823.51}, {"d": "Jan-26", "r": 35.06, "spend": 570491.01, "rev": 20002991.99}, {"d": "Feb-26", "r": 25.11, "spend": 1092715.3, "rev": 27439286.55}, {"d": "Mar-26", "r": 28.51, "spend": 622063.78, "rev": 17734036.36}, {"d": "Apr-26", "r": 34.33, "spend": 956898.98, "rev": 32847826.56}, {"d": "Jan-25", "r": 9.52, "spend": 123281.75, "rev": 1173227.08}, {"d": "Feb-25", "r": 9.13, "spend": 132442.32, "rev": 1208706.88}, {"d": "Mar-25", "r": 9.43, "spend": 267905.16, "rev": 2525777.43}, {"d": "Apr-25", "r": 31.95, "spend": 5682.9, "rev": 181542.0}, {"d": "May-25", "r": 11.76, "spend": 4943.97, "rev": 58160.0}, {"d": "Jun-25", "r": 8.37, "spend": 38161.11, "rev": 319534.0}, {"d": "Jul-25", "r": 9.3, "spend": 72956.89, "rev": 678244.0}]}, "Kroger": {"goal": 11, "data": [{"d": "Jan-25", "r": 9.52, "spend": 123281.75, "rev": 1173227.08}, {"d": "Feb-25", "r": 9.13, "spend": 132442.32, "rev": 1208706.88}, {"d": "Mar-25", "r": 9.43, "spend": 267905.16, "rev": 2525777.43}, {"d": "Apr-25", "r": 31.95, "spend": 5682.9, "rev": 181542.0}, {"d": "May-25", "r": 11.76, "spend": 4943.97, "rev": 58160.0}, {"d": "Jun-25", "r": 8.37, "spend": 38161.11, "rev": 319534.0}, {"d": "Jul-25", "r": 9.3, "spend": 72956.89, "rev": 678244.0}, {"d": "Sep-25", "r": 8.81, "spend": 243485.58, "rev": 2145498.41}, {"d": "Oct-25", "r": 8.98, "spend": 269957.48, "rev": 2422978.56}, {"d": "Nov-25", "r": 9.88, "spend": 257062.53, "rev": 2538498.66}, {"d": "Dec-25", "r": 7.8, "spend": 304279.54, "rev": 2372304.09}, {"d": "Jan-26", "r": 7.8, "spend": 146503.14, "rev": 1142699.54}, {"d": "Feb-26", "r": 9.12, "spend": 110441.34, "rev": 1007356.7}, {"d": "Mar-26", "r": 10.85, "spend": 119623.68, "rev": 1297838.79}, {"d": "Apr-26", "r": 11.9, "spend": 94345.65, "rev": 1122518.36}, {"d": "Jul-25", "r": 6.1, "spend": 5000.0, "rev": 30475.68}]}, "BJ's": {"goal": 8, "data": [{"d": "Jul-25", "r": 6.1, "spend": 5000.0, "rev": 30475.68}, {"d": "Sep-25", "r": 7.14, "spend": 24918.64, "rev": 177804.5}, {"d": "Oct-25", "r": 9.13, "spend": 26066.98, "rev": 237983.95}, {"d": "Nov-25", "r": 12.7, "spend": 25000.9, "rev": 317392.42}, {"d": "Dec-25", "r": 14.06, "spend": 25000.0, "rev": 351536.72}, {"d": "Jan-26", "r": 15.06, "spend": 25000.0, "rev": 376446.64}, {"d": "Feb-26", "r": 11.72, "spend": 25000.0, "rev": 293046.66}, {"d": "Mar-26", "r": 12.99, "spend": 23780.72, "rev": 308880.19}, {"d": "Apr-26", "r": 42.78, "spend": 7500.0, "rev": 320854.84}, {"d": "Jul-25", "r": 7.0, "spend": 4480.2, "rev": 31382.7}, {"d": "Sep-25", "r": 6.41, "spend": 14942.63, "rev": 95811.97}, {"d": "Oct-25", "r": 6.9, "spend": 14923.58, "rev": 102967.87}, {"d": "Nov-25", "r": 6.31, "spend": 14606.41, "rev": 92214.12}, {"d": "Dec-25", "r": 7.05, "spend": 13759.9, "rev": 97032.51}, {"d": "Jan-26", "r": 7.09, "spend": 14999.99, "rev": 106393.7}]}, "Target": {"goal": 7, "data": [{"d": "Jul-25", "r": 7.0, "spend": 4480.2, "rev": 31382.7}, {"d": "Sep-25", "r": 6.41, "spend": 14942.63, "rev": 95811.97}, {"d": "Oct-25", "r": 6.9, "spend": 14923.58, "rev": 102967.87}, {"d": "Nov-25", "r": 6.31, "spend": 14606.41, "rev": 92214.12}, {"d": "Dec-25", "r": 7.05, "spend": 13759.9, "rev": 97032.51}, {"d": "Jan-26", "r": 7.09, "spend": 14999.99, "rev": 106393.7}, {"d": "Feb-26", "r": 7.03, "spend": 14697.75, "rev": 103361.46}, {"d": "Mar-26", "r": 8.62, "spend": 11784.99, "rev": 101643.12}, {"d": "Apr-26", "r": 4.41, "spend": 38229.48, "rev": 168512.18}, {"d": "Jan-25", "r": 5.79, "spend": 19549.99, "rev": 113186.42}, {"d": "Feb-25", "r": 6.4, "spend": 20096.65, "rev": 128564.87}, {"d": "Mar-25", "r": 7.79, "spend": 32948.84, "rev": 256545.84}, {"d": "Jun-25", "r": 9.8, "spend": 9824.2, "rev": 96240.27}, {"d": "Jul-25", "r": 7.02, "spend": 24856.07, "rev": 174438.04}, {"d": "Sep-25", "r": 6.0, "spend": 14615.94, "rev": 87734.7}, {"d": "Oct-25", "r": 4.03, "spend": 23900.71, "rev": 96277.97}, {"d": "Nov-25", "r": 11.4, "spend": 18899.26, "rev": 215471.02}, {"d": "Dec-25", "r": 7.43, "spend": 26119.49, "rev": 194108.37}, {"d": "Jan-26", "r": 8.67, "spend": 26021.84, "rev": 225591.97}]}, "Sam's Club": {"goal": 8, "data": [{"d": "Jan-25", "r": 5.79, "spend": 19549.99, "rev": 113186.42}, {"d": "Feb-25", "r": 6.4, "spend": 20096.65, "rev": 128564.87}, {"d": "Mar-25", "r": 7.79, "spend": 32948.84, "rev": 256545.84}, {"d": "Jun-25", "r": 9.8, "spend": 9824.2, "rev": 96240.27}, {"d": "Jul-25", "r": 7.02, "spend": 24856.07, "rev": 174438.04}, {"d": "Sep-25", "r": 6.0, "spend": 14615.94, "rev": 87734.7}, {"d": "Oct-25", "r": 4.03, "spend": 23900.71, "rev": 96277.97}, {"d": "Nov-25", "r": 11.4, "spend": 18899.26, "rev": 215471.02}, {"d": "Dec-25", "r": 7.43, "spend": 26119.49, "rev": 194108.37}, {"d": "Jan-26", "r": 8.67, "spend": 26021.84, "rev": 225591.97}, {"d": "Feb-26", "r": 14.07, "spend": 24709.22, "rev": 347634.85}, {"d": "Mar-26", "r": 15.53, "spend": 20812.14, "rev": 323118.77}, {"d": "Apr-26", "r": 17.66, "spend": 18714.07, "rev": 330486.59}, {"d": "Jan-25", "r": 8.25, "spend": 2138.0, "rev": 17649.0}, {"d": "Feb-25", "r": 10.1, "spend": 1826.0, "rev": 18445.0}, {"d": "Mar-25", "r": 7.83, "spend": 5639.0, "rev": 44166.0}, {"d": "Apr-25", "r": 18.44, "spend": 3510.0, "rev": 64738.0}, {"d": "Jun-25", "r": 7.25, "spend": 2168.0, "rev": 15720.0}, {"d": "Jul-25", "r": 14.91, "spend": 2496.0, "rev": 37205.0}]}, "Wakefern": {"goal": 8, "data": [{"d": "Jan-25", "r": 8.25, "spend": 2138.0, "rev": 17649.0}, {"d": "Feb-25", "r": 10.1, "spend": 1826.0, "rev": 18445.0}, {"d": "Mar-25", "r": 7.83, "spend": 5639.0, "rev": 44166.0}, {"d": "Apr-25", "r": 18.44, "spend": 3510.0, "rev": 64738.0}, {"d": "Jun-25", "r": 7.25, "spend": 2168.0, "rev": 15720.0}, {"d": "Jul-25", "r": 14.91, "spend": 2496.0, "rev": 37205.0}, {"d": "Sep-25", "r": 10.03, "spend": 4123.0, "rev": 41374.0}, {"d": "Oct-25", "r": 11.04, "spend": 7736.0, "rev": 85400.0}, {"d": "Nov-25", "r": 11.24, "spend": 8937.0, "rev": 100452.0}, {"d": "Dec-25", "r": 10.12, "spend": 12147.0, "rev": 122976.0}, {"d": "Jan-26", "r": 12.01, "spend": 10493.0, "rev": 126044.0}, {"d": "Feb-26", "r": 13.4, "spend": 5419.0, "rev": 72632.0}, {"d": "Mar-26", "r": 18.0, "spend": 4275.0, "rev": 76934.0}, {"d": "Apr-26", "r": 12.75, "spend": 9365.21, "rev": 119394.0}, {"d": "Jan-25", "r": 7.03, "spend": 49852.06, "rev": 350687.37}, {"d": "Feb-25", "r": 8.07, "spend": 39831.94, "rev": 321400.29}, {"d": "Mar-25", "r": 5.13, "spend": 802291.63, "rev": 4115289.42}, {"d": "Apr-25", "r": 5.37, "spend": 11.66, "rev": 62.56}, {"d": "Jun-25", "r": 11.59, "spend": 30919.24, "rev": 358280.35}, {"d": "Jul-25", "r": 16.65, "spend": 30556.17, "rev": 508835.82}]}, "Instacart": {"goal": 9, "data": [{"d": "Jan-25", "r": 7.03, "spend": 49852.06, "rev": 350687.37}, {"d": "Feb-25", "r": 8.07, "spend": 39831.94, "rev": 321400.29}, {"d": "Mar-25", "r": 5.13, "spend": 802291.63, "rev": 4115289.42}, {"d": "Apr-25", "r": 5.37, "spend": 11.66, "rev": 62.56}, {"d": "Jun-25", "r": 11.59, "spend": 30919.24, "rev": 358280.35}, {"d": "Jul-25", "r": 16.65, "spend": 30556.17, "rev": 508835.82}, {"d": "Sep-25", "r": 12.6, "spend": 189236.38, "rev": 2384933.83}, {"d": "Oct-25", "r": 9.83, "spend": 292766.68, "rev": 2878913.29}, {"d": "Nov-25", "r": 9.3, "spend": 258882.63, "rev": 2406944.26}, {"d": "Dec-25", "r": 8.03, "spend": 360567.38, "rev": 2896469.99}, {"d": "Jan-26", "r": 8.4, "spend": 296861.94, "rev": 2493649.74}, {"d": "Feb-26", "r": 8.97, "spend": 249858.11, "rev": 2242180.38}, {"d": "Mar-26", "r": 9.49, "spend": 98667.76, "rev": 936212.97}, {"d": "Apr-26", "r": 9.95, "spend": 99524.68, "rev": 989803.31}, {"d": "Jan-25", "r": 2.23, "spend": 30586.39, "rev": 68144.59}, {"d": "Feb-25", "r": 3.05, "spend": 4303.51, "rev": 13116.37}, {"d": "Jul-25", "r": 6.28, "spend": 25355.49, "rev": 159142.52}]}, "Albertsons": {"goal": 10, "data": [{"d": "Jan-25", "r": 2.23, "spend": 30586.39, "rev": 68144.59}, {"d": "Feb-25", "r": 3.05, "spend": 4303.51, "rev": 13116.37}, {"d": "Jul-25", "r": 6.28, "spend": 25355.49, "rev": 159142.52}, {"d": "Sep-25", "r": 10.51, "spend": 26147.81, "rev": 274817.3}, {"d": "Oct-25", "r": 11.31, "spend": 23844.2, "rev": 269672.49}, {"d": "Nov-25", "r": 10.69, "spend": 18025.81, "rev": 192606.22}, {"d": "Dec-25", "r": 9.7, "spend": 24235.02, "rev": 235058.31}, {"d": "Jan-26", "r": 10.13, "spend": 24827.09, "rev": 251422.83}, {"d": "Feb-26", "r": 10.18, "spend": 26023.49, "rev": 264862.03}, {"d": "Mar-26", "r": 13.04, "spend": 24913.8, "rev": 324794.65}, {"d": "Apr-26", "r": 8.43, "spend": 50554.0, "rev": 426172.99}, {"d": "Jan-25", "r": 4.62, "spend": 10146.66, "rev": 46888.71}, {"d": "Feb-25", "r": 4.14, "spend": 11732.24, "rev": 48570.84}, {"d": "Mar-25", "r": 4.19, "spend": 14955.87, "rev": 62658.74}, {"d": "Jul-25", "r": 4.01, "spend": 3859.37, "rev": 15474.22}]}, "ADUSA": {"goal": 6, "data": [{"d": "Jan-25", "r": 4.62, "spend": 10146.66, "rev": 46888.71}, {"d": "Feb-25", "r": 4.14, "spend": 11732.24, "rev": 48570.84}, {"d": "Mar-25", "r": 4.19, "spend": 14955.87, "rev": 62658.74}, {"d": "Jul-25", "r": 4.01, "spend": 3859.37, "rev": 15474.22}, {"d": "Aug-25", "r": 0.07, "spend": 5795.13, "rev": 393.51}, {"d": "Sep-25", "r": 3.37, "spend": 5743.22, "rev": 19326.54}, {"d": "Oct-25", "r": 4.35, "spend": 5166.1, "rev": 22456.79}, {"d": "Nov-25", "r": 6.07, "spend": 4505.37, "rev": 27326.06}, {"d": "Dec-25", "r": 5.69, "spend": 5560.71, "rev": 31633.8}, {"d": "Jan-26", "r": 9.92, "spend": 9108.89, "rev": 90403.99}, {"d": "Feb-26", "r": 4.36, "spend": 23847.73, "rev": 103869.8}, {"d": "Mar-26", "r": 3.83, "spend": 16119.31, "rev": 61792.74}, {"d": "Apr-26", "r": 5.52, "spend": 18030.38, "rev": 99485.6}, {"d": "Jan-25", "r": 4.42, "spend": 1934.68, "rev": 8549.06}, {"d": "Jun-25", "r": 1.36, "spend": 341.4, "rev": 464.01}, {"d": "Jul-25", "r": 1.09, "spend": 805.27, "rev": 880.03}]}, "Meijer": {"goal": 3, "data": [{"d": "Jan-25", "r": 4.42, "spend": 1934.68, "rev": 8549.06}, {"d": "Jun-25", "r": 1.36, "spend": 341.4, "rev": 464.01}, {"d": "Jul-25", "r": 1.09, "spend": 805.27, "rev": 880.03}, {"d": "Sep-25", "r": 0.14, "spend": 1000.0, "rev": 136.8}, {"d": "Oct-25", "r": 1.71, "spend": 1000.01, "rev": 1713.62}, {"d": "Nov-25", "r": 1.93, "spend": 1000.0, "rev": 1933.13}, {"d": "Dec-25", "r": 2.13, "spend": 1001.29, "rev": 2137.47}, {"d": "Jan-26", "r": 2.32, "spend": 1000.0, "rev": 2315.97}, {"d": "Feb-26", "r": 1.91, "spend": 1000.0, "rev": 1909.34}, {"d": "Mar-26", "r": 2.52, "spend": 1000.0, "rev": 2515.45}, {"d": "Apr-26", "r": 3.2, "spend": 1107.36, "rev": 3548.94}, {"d": "Nov-25", "r": 6.85, "spend": 18755.77, "rev": 128454.09}, {"d": "Dec-25", "r": 7.76, "spend": 14230.08, "rev": 110380.11}, {"d": "Jan-26", "r": 8.17, "spend": 14010.71, "rev": 114450.34}, {"d": "Feb-26", "r": 8.12, "spend": 19608.28, "rev": 159263.04}, {"d": "Mar-26", "r": 9.5, "spend": 16775.34, "rev": 159379.08}, {"d": "Apr-26", "r": 10.24, "spend": 16971.7, "rev": 173837.97}]}, "Amazon Fresh": {"goal": 9, "data": [{"d": "Nov-25", "r": 6.85, "spend": 18755.77, "rev": 128454.09}, {"d": "Dec-25", "r": 7.76, "spend": 14230.08, "rev": 110380.11}, {"d": "Jan-26", "r": 8.17, "spend": 14010.71, "rev": 114450.34}, {"d": "Feb-26", "r": 8.12, "spend": 19608.28, "rev": 159263.04}, {"d": "Mar-26", "r": 9.5, "spend": 16775.34, "rev": 159379.08}, {"d": "Apr-26", "r": 10.24, "spend": 16971.7, "rev": 173837.97}, {"d": "Sep-25", "r": 7.98, "spend": 13344.47, "rev": 106534.26}, {"d": "Oct-25", "r": 7.84, "spend": 24000.61, "rev": 188168.9}, {"d": "Nov-25", "r": 7.35, "spend": 30623.11, "rev": 224960.01}, {"d": "Dec-25", "r": 6.46, "spend": 31766.91, "rev": 205303.04}, {"d": "Jan-26", "r": 7.52, "spend": 9909.1, "rev": 74545.48}, {"d": "Feb-26", "r": 8.32, "spend": 9797.5, "rev": 81527.06}, {"d": "Mar-26", "r": 9.39, "spend": 9963.6, "rev": 93525.07}, {"d": "Apr-26", "r": 8.99, "spend": 18577.51, "rev": 167017.56}]}, "DoorDash": {"goal": 7, "data": [{"d": "Sep-25", "r": 7.98, "spend": 13344.47, "rev": 106534.26}, {"d": "Oct-25", "r": 7.84, "spend": 24000.61, "rev": 188168.9}, {"d": "Nov-25", "r": 7.35, "spend": 30623.11, "rev": 224960.01}, {"d": "Dec-25", "r": 6.46, "spend": 31766.91, "rev": 205303.04}, {"d": "Jan-26", "r": 7.52, "spend": 9909.1, "rev": 74545.48}, {"d": "Feb-26", "r": 8.32, "spend": 9797.5, "rev": 81527.06}, {"d": "Mar-26", "r": 9.39, "spend": 9963.6, "rev": 93525.07}, {"d": "Apr-26", "r": 8.99, "spend": 18577.51, "rev": 167017.56}, {"d": "Sep-25", "r": 0.34, "spend": 309.01, "rev": 105.89}, {"d": "Oct-25", "r": 1.13, "spend": 1374.13, "rev": 1558.31}, {"d": "Nov-25", "r": 3.61, "spend": 894.85, "rev": 3230.48}, {"d": "Dec-25", "r": 3.64, "spend": 1041.37, "rev": 3794.45}, {"d": "Jan-26", "r": 3.44, "spend": 969.35, "rev": 3332.08}, {"d": "Feb-26", "r": 3.86, "spend": 983.44, "rev": 3792.92}, {"d": "Mar-26", "r": 3.76, "spend": 966.31, "rev": 3632.97}, {"d": "Apr-26", "r": 3.58, "spend": 962.36, "rev": 3442.01}]}, "Hy-Vee": {"goal": 3, "data": [{"d": "Sep-25", "r": 0.34, "spend": 309.01, "rev": 105.89}, {"d": "Oct-25", "r": 1.13, "spend": 1374.13, "rev": 1558.31}, {"d": "Nov-25", "r": 3.61, "spend": 894.85, "rev": 3230.48}, {"d": "Dec-25", "r": 3.64, "spend": 1041.37, "rev": 3794.45}, {"d": "Jan-26", "r": 3.44, "spend": 969.35, "rev": 3332.08}, {"d": "Feb-26", "r": 3.86, "spend": 983.44, "rev": 3792.92}, {"d": "Mar-26", "r": 3.76, "spend": 966.31, "rev": 3632.97}, {"d": "Apr-26", "r": 3.58, "spend": 962.36, "rev": 3442.01}, {"d": "Jan-25", "r": 0.3, "spend": 28266642.0, "rev": 8551234.82}, {"d": "Feb-25", "r": 0.27, "spend": 33849868.0, "rev": 9163173.06}, {"d": "Mar-25", "r": 0.72, "spend": 32671645.0, "rev": 23556350.83}, {"d": "Apr-25", "r": 0.08, "spend": 24852545.0, "rev": 1909524.15}, {"d": "May-25", "r": 0.11, "spend": 24974102.0, "rev": 2641627.06}, {"d": "Jun-25", "r": 0.4, "spend": 26037084.0, "rev": 10433092.32}, {"d": "Jul-25", "r": 0.6, "spend": 28332371.0, "rev": 16991875.07}, {"d": "Aug-25", "r": 0.67, "spend": 30971384.0, "rev": 20709009.02}, {"d": "Sep-25", "r": 0.8, "spend": 30490115.0, "rev": 24490648.38}, {"d": "Oct-25", "r": 0.91, "spend": 30374570.0, "rev": 27531979.8}, {"d": "Nov-25", "r": 0.93, "spend": 28001546.0, "rev": 26177430.61}, {"d": "Dec-25", "r": 0.63, "spend": 30739467.0, "rev": 19487558.37}]}};
+const P_YELLOW = '#FFCC33';
+const P_BLUE   = '#003C71';
+const P_BRIGHT = '#00A3E0';
+const ROAS_GREEN = '#00C853';
+const ROAS_RED   = '#FF1744';
+ 
+Chart.defaults.color = '#5A8AAA';
+Chart.defaults.borderColor = '#003366';
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 10;
+ 
+// ── OVERVIEW: Spend vs Revenue ──────────────────────────────────────────────
+const spendVals  = TOP.map(d => d.spend || 0);
+const revVals    = TOP.map(d => d.rev   || 0);
+const topLabels  = TOP.map(d => d.d);
+ 
+const ovCtx = document.getElementById('overviewChart').getContext('2d');
+const spendGrad = ovCtx.createLinearGradient(0,0,0,260);
+spendGrad.addColorStop(0,'rgba(255,204,51,0.2)');spendGrad.addColorStop(1,'rgba(255,204,51,0)');
+const revGrad = ovCtx.createLinearGradient(0,0,0,260);
+revGrad.addColorStop(0,'rgba(0,163,224,0.2)');revGrad.addColorStop(1,'rgba(0,163,224,0)');
+ 
+new Chart(ovCtx, {
+  type: 'line',
+  data: {
+    labels: topLabels,
+    datasets: [
+      {
+        label: 'Spend',
+        data: spendVals,
+        fill: true,
+        backgroundColor: spendGrad,
+        borderColor: P_YELLOW,
+        borderWidth: 2.5,
+        pointBackgroundColor: P_YELLOW,
+        pointBorderColor: '#001829',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        tension: 0.35,
+      },
+      {
+        label: 'Revenue',
+        data: revVals,
+        fill: true,
+        backgroundColor: revGrad,
+        borderColor: P_BRIGHT,
+        borderWidth: 2.5,
+        pointBackgroundColor: P_BRIGHT,
+        pointBorderColor: '#001829',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        tension: 0.35,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#002040',
+        borderColor: '#003366',
+        borderWidth: 1,
+        titleColor: P_YELLOW,
+        bodyColor: '#E8F4FC',
+        padding: 12,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: $${(ctx.parsed.y/1e6).toFixed(2)}M`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#5A8AAA', maxRotation: 45 }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: {
+          color: '#5A8AAA',
+          callback: v => '$' + (v/1e6).toFixed(1) + 'M'
+        }
+      }
+    }
+  }
+});
+ 
+// ── RETAILER CARDS ───────────────────────────────────────────────────────────
+const grid = document.getElementById('retailerGrid');
+ 
+Object.entries(RETAILERS).forEach(([name, info]) => {
+  const pts   = (info.data || []).filter(d => d.r && d.r > 0);
+  const goal  = info.goal || 0;
+  if (!pts.length) return;
+ 
+  const rvals  = pts.map(d => d.r);
+  const latest = rvals[rvals.length - 1];
+  const avg    = (rvals.reduce((a,b) => a+b, 0) / rvals.length).toFixed(2);
+  const peak   = Math.max(...rvals).toFixed(2);
+ 
+  // Color based on goal
+  const isOver  = latest >= goal;
+  const lineColor  = goal > 0 ? (isOver ? ROAS_GREEN : ROAS_RED) : P_YELLOW;
+  const badgeClass = goal > 0 ? (isOver ? 'over' : 'under') : 'nodata';
+  const goalTag    = goal > 0
+    ? `<span class="goal-tag ${isOver?'over':'under'}">${isOver?'&#9650;':'&#9660;'} Goal: ${goal}x</span>`
+    : '';
+  const trendA = latest > rvals[0] ? '&#8593;' : latest < rvals[0] ? '&#8595;' : '&#8594;';
+ 
+  const sid = name.replace(/[^a-z0-9]/gi, '_');
+ 
+  const card = document.createElement('div');
+  card.className = 'retailer-card';
+  card.innerHTML = `
+    <div class="card-top-bar" style="background:${lineColor}"></div>
+    <div class="card-top">
+      <span class="retailer-name">${name}</span>
+      <span class="roas-badge ${badgeClass}">${latest.toFixed(2)}x ${trendA}</span>
+    </div>
+    ${pts.length >= 2
+      ? `<div class="card-chart-area"><canvas id="c_${sid}"></canvas></div>`
+      : `<div class="no-data">limited data</div>`
+    }
+    ${goalTag}
+    <div class="card-footer">
+      <div class="mini-stat"><span class="mini-val">${peak}x</span><span class="mini-lbl">Peak</span></div>
+      <div class="mini-stat"><span class="mini-val">${avg}x</span><span class="mini-lbl">Avg</span></div>
+      <div class="mini-stat"><span class="mini-val">${goal > 0 ? goal+'x' : '—'}</span><span class="mini-lbl">Goal</span></div>
+      <div class="mini-stat"><span class="mini-val">${rvals.length}</span><span class="mini-lbl">Months</span></div>
+      <div class="mini-stat"><span class="mini-val">${pts[0].d}</span><span class="mini-lbl">Since</span></div>
+    </div>`;
+  grid.appendChild(card);
+ 
+  if (pts.length >= 2) {
+    setTimeout(() => {
+      const ctx = document.getElementById(`c_${sid}`);
+      if (!ctx) return;
+      const c = ctx.getContext('2d');
+      const gr = c.createLinearGradient(0, 0, 0, 130);
+      gr.addColorStop(0, lineColor + '30');
+      gr.addColorStop(1, lineColor + '00');
+ 
+      // Goal reference line data
+      const goalLine = rvals.map(() => goal > 0 ? goal : null);
+ 
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: pts.map(d => d.d),
+          datasets: [
+            {
+              label: 'Goal',
+              data: goalLine,
+              fill: false,
+              borderColor: 'rgba(255,255,255,0.2)',
+              borderWidth: 1,
+              borderDash: [4, 4],
+              pointRadius: 0,
+              tension: 0,
+            },
+            {
+              label: 'ROAS',
+              data: rvals,
+              fill: true,
+              backgroundColor: gr,
+              borderColor: lineColor,
+              borderWidth: 2.5,
+              pointBackgroundColor: rvals.map(v => v === Math.max(...rvals) ? '#fff' : lineColor),
+              pointBorderColor: rvals.map(v => v === Math.max(...rvals) ? lineColor : '#001829'),
+              pointBorderWidth: 2,
+              pointRadius: rvals.map(v => (v === Math.max(...rvals) || v === Math.min(...rvals)) ? 5 : 3),
+              pointHoverRadius: 7,
+              tension: 0.35,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#002040',
+              borderColor: lineColor,
+              borderWidth: 1,
+              titleColor: lineColor,
+              bodyColor: '#E8F4FC',
+              padding: 10,
+              callbacks: { label: c => ` ROAS: ${c.parsed.y.toFixed(2)}x` }
+            }
+          },
+          scales: {
+            x: { display: false },
+            y: {
+              display: true,
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { callback: v => v.toFixed(0)+'x', maxTicksLimit: 3, color: '#5A8AAA', font: { size: 9 } }
+            }
+          }
+        }
+      });
+    }, 60);
+  }
+});
+</script>
+</body>
+</html>
